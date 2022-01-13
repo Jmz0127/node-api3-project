@@ -5,10 +5,18 @@ const { validateUserId, validateUser, validatePost } = require('../middleware/mi
 // The middleware functions also need to be required
 const { logger } = require('../middleware/middleware');
 
+const User = require('./users-model');
+const Post = require('../posts/posts-model');
+
 const router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
 	// RETURN AN ARRAY WITH ALL THE USERS
+	User.get()
+		.then((users) => {
+			res.json(users);
+		})
+		.catch(next);
 });
 
 router.get('/:id', validateUserId, (req, res) => {
@@ -49,6 +57,15 @@ router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
 	// and another middleware to check that the request body is valid
 	console.log(req.user);
 	console.log(req.text);
+});
+
+router.use((err, req, res, next) => {
+	//need next here just so it reads it as as an end point, can eslint disable
+	res.status(err.status || 500).json({
+		customMessage: 'something tragically tragic inside of post router happened',
+		message: err.message,
+		stack: err.stack
+	});
 });
 
 // do not forget to export the router
